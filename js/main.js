@@ -1,10 +1,4 @@
-// URL DATA
-const dataUrl = {
-  user: 'https://cryptostar.grading.htmlacademy.pro/user',
-  contract: 'https://cryptostar.grading.htmlacademy.pro/contractors'
-};
-
-// FETCH FUNCTION
+// ===== API.JS ===== //
 const getData = (url, onSuccess, onError = console.error) => {
   fetch(url)
     .then((response) => response.json())
@@ -12,16 +6,15 @@ const getData = (url, onSuccess, onError = console.error) => {
     .catch(onError);
 };
 
-// RENDER USERS
+// ===== USER.JS ===== //
 const userProfileName = document.querySelector('.user-profile__name span');
 const userBalance = document.querySelector('#user-fiat-balance');
 const userCryptoBalance = document.querySelector('#user-crypto-balance');
-const userPorofil = document.querySelector('.user-profile');
+const userProfile = document.querySelector('.user-profile');
 
 const failUserData = () => {
-  userPorofil.style.display = 'none';
+  userProfile.style.display = 'none';
 };
-
 const userProfiles = ({ userName, balances }) => {
   userProfileName.textContent = userName;
   balances.forEach((element) => {
@@ -33,7 +26,7 @@ const userProfiles = ({ userName, balances }) => {
   });
 };
 
-// RENDER TABLE COUNTERPARTIES
+// ===== COUNTERPARTIES.JS ===== //
 const usersListContainer = document.querySelector('.users-list__table-body');
 const userTableRowTemplate = document.querySelector('#user-table-row__template').content;
 
@@ -50,13 +43,12 @@ const removeProvideBadge = (containers) => {
 const userBalanceCurrency = (item) => (item.balance.currency === 'KEKS')
   ? `${item.minAmount} ₽ - ${Math.round(item.balance.amount * item.exchangeRate)} ₽`
   : `${item.minAmount} ₽ - ${item.balance.amount} ₽`;
-
 const userIsVerified = (containers, item) => {
   if (!item.isVerified) {
-    containers.querySelector('.users-list__table-name svg').remove();
+    containers.querySelector('.users-list__table-name svg').style.display = 'none';
   }
 };
-const userStatusSeller = (containers, item) => {
+const counterpartiesStatusSeller = (containers, item) => {
   removeProvideBadge(containers);
   if (item.status === 'seller') {
     item.paymentMethods.forEach((provider) => {
@@ -64,36 +56,83 @@ const userStatusSeller = (containers, item) => {
     });
   }
 };
-const createUserListData = (item) => {
+const createCounterpartiesListData = (item) => {
   const { userName, balance, exchangeRate } = item;
-  const containers = userTableRowTemplate.cloneNode(true);
-  containers.querySelector('.users-list__table-name span').textContent = userName;
-  containers.querySelector('.users-list__table-currency').textContent = balance.currency;
-  containers.querySelector('.users-list__table-exchangerate').textContent = `${exchangeRate} ₽`;
-  containers.querySelector('.users-list__table-cashlimit').textContent = userBalanceCurrency(item);
-  userIsVerified(containers, item);
-  userStatusSeller(containers, item);
-  return containers;
+  const list = userTableRowTemplate.cloneNode(true);
+  list.querySelector('.users-list__table-name span').textContent = userName;
+  list.querySelector('.users-list__table-currency').textContent = balance.currency;
+  list.querySelector('.users-list__table-exchangerate').textContent = `${exchangeRate} ₽`;
+  list.querySelector('.users-list__table-cashlimit').textContent = userBalanceCurrency(item);
+  userIsVerified(list, item);
+  counterpartiesStatusSeller(list, item);
+  return list;
 };
 const renderCounterparties = (data) => {
+  usersListContainer.replaceChildren();
   const fragment = document.createDocumentFragment();
   data.forEach((item) => {
-    const createCounterparties = createUserListData(item);
+    const createCounterparties = createCounterpartiesListData(item);
     fragment.append(createCounterparties);
-
-
   });
   usersListContainer.append(fragment);
 };
 
+
+// ===== TOGGLE.JS ===== //
+const tabsToggleBuySell = document.querySelector('.tabs--toggle-buy-sell');
+const tabsControls = tabsToggleBuySell.querySelector('.tabs__controls');
+const allButtons = tabsControls.querySelectorAll('.tabs__control');
+const checkedUsers = document.querySelector('#checked-users');
+
+const getFilteredTab = () => {
+  const currentActiveButton = document.querySelector('.tabs__control.is-active');
+  return currentActiveButton.textContent.trim() === 'Купить' ? 'seller' : 'buyer';
+};
+const getFilteredVerifiedStatus = (data, status, onlyVerified) => {
+  let filetred = data.filter((item) => item.status === status);
+  if (onlyVerified) {
+    filetred = filetred.filter((item) => item.isVerified);
+  }
+  return filetred;
+};
+const getFilteredData = (data) => {
+  const status = getFilteredTab();
+  const onlyVerified = checkedUsers.checked;
+  return getFilteredVerifiedStatus(data, status, onlyVerified);
+
+};
+const resetChecked = () => {
+  checkedUsers.checked = false;
+};
+
+const initToggleEventListener = (data) => {
+  resetChecked();
+  renderCounterparties(getFilteredData(data));
+  tabsControls.addEventListener('click', (e) => {
+    const clickButton = e.target.classList.contains('tabs__control');
+    if (!clickButton) { return; }
+    allButtons.forEach((btn) => btn.classList.toggle('is-active', btn === e.target));
+    renderCounterparties(getFilteredData(data));
+  });
+  checkedUsers.addEventListener('change', () => {
+    renderCounterparties(getFilteredData(data));
+  });
+};
+
+
+// ===== MAIN.JS ===== //
+const DATAURL = {
+  user: 'https://cryptostar.grading.htmlacademy.pro/user',
+  contract: 'https://cryptostar.grading.htmlacademy.pro/contractors'
+};
 // ACCESSING THE SERVER AND OUTPUTTING DATA
-getData(dataUrl.user, (data) => {
+getData(DATAURL.user, (data) => {
   userProfiles(data);
 }, () => {
   failUserData();
 });
-getData(dataUrl.contract, (data) => {
-  renderCounterparties(data);
-  // console.log(data);
+getData(DATAURL.contract, (data) => {
+  // renderCounterparties(data);
+  initToggleEventListener(data);
+  console.log(data);
 });
-
