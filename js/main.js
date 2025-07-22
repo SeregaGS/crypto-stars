@@ -41,7 +41,7 @@ const removeProvideBadge = (containers) => {
   container.replaceChildren();
 };
 const userBalanceCurrency = (item) => (item.balance.currency === 'KEKS')
-  ? `${item.minAmount} ₽ - ${Math.round(item.balance.amount * item.exchangeRate)} ₽`
+  ? `${(item.minAmount * item.exchangeRate).toFixed(2)} ₽ - ${(item.balance.amount * item.exchangeRate).toFixed(2)} ₽`
   : `${item.minAmount} ₽ - ${item.balance.amount} ₽`;
 const userIsVerified = (containers, item) => {
   if (!item.isVerified) {
