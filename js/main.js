@@ -43,9 +43,9 @@ const removeProvideBadge = (containers) => {
 const userBalanceCurrency = (item) => (item.balance.currency === 'KEKS')
   ? `${(item.minAmount * item.exchangeRate).toFixed(2)} ₽ - ${(item.balance.amount * item.exchangeRate).toFixed(2)} ₽`
   : `${item.minAmount} ₽ - ${item.balance.amount} ₽`;
-const userIsVerified = (containers, item) => {
+const userIsVerified = (containers, item, classStyle) => {
   if (!item.isVerified) {
-    containers.querySelector('.users-list__table-name svg').style.display = 'none';
+    containers.querySelector(classStyle).style.display = 'none';
   }
 };
 const counterpartiesStatusSeller = (containers, item) => {
@@ -63,7 +63,7 @@ const createCounterpartiesListData = (item) => {
   list.querySelector('.users-list__table-currency').textContent = balance.currency;
   list.querySelector('.users-list__table-exchangerate').textContent = `${exchangeRate} ₽`;
   list.querySelector('.users-list__table-cashlimit').textContent = userBalanceCurrency(item);
-  userIsVerified(list, item);
+  userIsVerified(list, item, '.users-list__table-name svg');
   counterpartiesStatusSeller(list, item);
   return list;
 };
@@ -77,6 +77,8 @@ const renderCounterparties = (data) => {
   usersListContainer.append(fragment);
 };
 
+// ===== MAP.JS ===== //
+
 
 // ===== TOGGLE.JS ===== //
 const tabsToggleBuySell = document.querySelector('.tabs--toggle-buy-sell');
@@ -84,10 +86,16 @@ const tabsControls = tabsToggleBuySell.querySelector('.tabs__controls');
 const allButtons = tabsControls.querySelectorAll('.tabs__control');
 const checkedUsers = document.querySelector('#checked-users');
 
+const usersNavContainer = document.querySelector('.users-list');
+const mapContainer = document.querySelector('.map');
+const tabsMap = document.querySelector('.tabs--toggle-list-map');
+const allButtonsMap = tabsMap.querySelectorAll('.tabs__control');
+
 const getFilteredTab = () => {
-  const currentActiveButton = document.querySelector('.tabs__control.is-active');
+  const currentActiveButton = tabsControls.querySelector('.tabs__control.is-active');
   return currentActiveButton.textContent.trim() === 'Купить' ? 'seller' : 'buyer';
 };
+
 const getFilteredVerifiedStatus = (data, status, onlyVerified) => {
   let filetred = data.filter((item) => item.status === status);
   if (onlyVerified) {
@@ -99,15 +107,66 @@ const getFilteredData = (data) => {
   const status = getFilteredTab();
   const onlyVerified = checkedUsers.checked;
   return getFilteredVerifiedStatus(data, status, onlyVerified);
-
 };
 const resetChecked = () => {
   checkedUsers.checked = false;
 };
 
+// КООРДИНАТЫ ПО ДЕФОЛТУ
+const MAP_COORDINATES_DEFAULT = {
+  lat: 59.92749,
+  lng: 30.31127,
+  view: 9
+};
+// CОЗДАЕМ КАРТУ
+
+const mapPinIcon = (isVerified) => {
+  const markerIcon = L.icon({
+    iconUrl: `./img/${isVerified ? 'pin-verified' : 'pin'}.svg`,
+    iconSize: [36, 46],
+    iconAnchor: [18, 46],
+  });
+  return markerIcon;
+};
+const mapPinAdd = (data, group) => {
+  data.forEach((item) => {
+    const { coords, isVerified } = item;
+    if (!coords) { return; }
+    const pimarker = L.marker(
+      {
+        lat: coords.lat,
+        lng: coords.lng,
+      },
+      {
+        icon: mapPinIcon(isVerified)
+
+      }
+    );
+    pimarker
+      .addTo(group);
+  });
+};
+const mapCreate = (data, container) => {
+  const map = L.map(container)
+    .setView({
+      lat: MAP_COORDINATES_DEFAULT.lat,
+      lng: MAP_COORDINATES_DEFAULT.lng,
+    }, MAP_COORDINATES_DEFAULT.view);
+  L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>',
+    },
+  ).addTo(map);
+  mapPinAdd(data, map);
+  return map;
+};
+
 const initToggleEventListener = (data) => {
   resetChecked();
   renderCounterparties(getFilteredData(data));
+  const maps = mapCreate(data, mapContainer);
+
   tabsControls.addEventListener('click', (e) => {
     const clickButton = e.target.classList.contains('tabs__control');
     if (!clickButton) { return; }
@@ -116,6 +175,16 @@ const initToggleEventListener = (data) => {
   });
   checkedUsers.addEventListener('change', () => {
     renderCounterparties(getFilteredData(data));
+  });
+  tabsMap.addEventListener('click', (e) => {
+    const clickButton = e.target.classList.contains('tabs__control');
+    if (!clickButton) { return; }
+    allButtonsMap.forEach((btn) => btn.classList.toggle('is-active', btn === e.target));
+    const currentActiveButton = tabsMap.querySelector('.tabs__control.is-active');
+    const isMapView = currentActiveButton.textContent.trim() === 'Карта';
+    mapContainer.parentElement.style.display = isMapView ? 'block' : 'none';
+    usersNavContainer.style.display = isMapView ? 'none' : 'block';
+    maps.invalidateSize();
   });
 };
 
@@ -132,7 +201,6 @@ getData(DATAURL.user, (data) => {
   failUserData();
 });
 getData(DATAURL.contract, (data) => {
-  // renderCounterparties(data);
   initToggleEventListener(data);
   console.log(data);
 });
