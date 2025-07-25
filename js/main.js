@@ -36,8 +36,8 @@ const createBadgeElement = (provider) => {
   li.textContent = provider.provider;
   return li;
 };
-const removeProvideBadge = (containers) => {
-  const container = containers.querySelector('.users-list__badges-list');
+const removeProvideBadge = (containers, classList) => {
+  const container = containers.querySelector(classList);
   container.replaceChildren();
 };
 const userBalanceCurrency = (item) => (item.balance.currency === 'KEKS')
@@ -48,11 +48,11 @@ const userIsVerified = (containers, item, classStyle) => {
     containers.querySelector(classStyle).style.display = 'none';
   }
 };
-const counterpartiesStatusSeller = (containers, item) => {
-  removeProvideBadge(containers);
+const counterpartiesStatusSeller = (containers, item, classList) => {
+  removeProvideBadge(containers, classList);
   if (item.status === 'seller') {
     item.paymentMethods.forEach((provider) => {
-      containers.querySelector('.users-list__badges-list').append(createBadgeElement(provider));
+      containers.querySelector(classList).append(createBadgeElement(provider));
     });
   }
 };
@@ -64,7 +64,7 @@ const createCounterpartiesListData = (item) => {
   list.querySelector('.users-list__table-exchangerate').textContent = `${exchangeRate} ₽`;
   list.querySelector('.users-list__table-cashlimit').textContent = userBalanceCurrency(item);
   userIsVerified(list, item, '.users-list__table-name svg');
-  counterpartiesStatusSeller(list, item);
+  counterpartiesStatusSeller(list, item, '.users-list__badges-list');
   return list;
 };
 const renderCounterparties = (data) => {
@@ -119,7 +119,18 @@ const MAP_COORDINATES_DEFAULT = {
   view: 9
 };
 // CОЗДАЕМ КАРТУ
+const mapPinBaloon = (item) => {
+  const baloonTemplate = document.querySelector('#map-baloon__template').content.querySelector('.user-card');
+  const baloonElement = baloonTemplate.cloneNode(true);
+  baloonElement.querySelector('.user-card__user-name span').textContent = item.userName;
+  baloonElement.querySelector('[data-cash="currency"]').textContent = item.balance.currency;
+  baloonElement.querySelector('[data-cash="exchange-rate"]').textContent = `${item.exchangeRate} ₽`;
+  baloonElement.querySelector('[data-cash="limit"]').textContent = userBalanceCurrency(item);
+  counterpartiesStatusSeller(baloonElement, item, '.user-card__badges-list');
+  userIsVerified(baloonElement, item, '.user-card__user-name svg');
 
+  return baloonElement;
+};
 const mapPinIcon = (isVerified) => {
   const markerIcon = L.icon({
     iconUrl: `./img/${isVerified ? 'pin-verified' : 'pin'}.svg`,
@@ -143,7 +154,8 @@ const mapPinAdd = (data, group) => {
       }
     );
     pimarker
-      .addTo(group);
+      .addTo(group)
+      .bindPopup(mapPinBaloon(item));
   });
 };
 const mapCreate = (data, container) => {
@@ -161,7 +173,6 @@ const mapCreate = (data, container) => {
   mapPinAdd(data, map);
   return map;
 };
-
 const initToggleEventListener = (data) => {
   resetChecked();
   renderCounterparties(getFilteredData(data));
