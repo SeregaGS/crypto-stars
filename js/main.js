@@ -56,6 +56,35 @@ const counterpartiesStatusSeller = (containers, item, classList) => {
     });
   }
 };
+
+const modalBuy = document.querySelector('.modal-buy');
+const renderModalCounterparties = (item) => {
+  modalBuy.querySelector('.transaction-info__data').lastChild.textContent = item.userName;
+  modalBuy.querySelector('.transaction-info__item--exchangerate .transaction-info__data').textContent = item.exchangeRate;
+  modalBuy.querySelector('.transaction-info__item--cashlimit .transaction-info__data').textContent = userBalanceCurrency(item);
+  const input = modalBuy.querySelector('[data-payment="pay"]');
+  const result = modalBuy.querySelector('[data-payment="crypto"]');
+  input.addEventListener('input', () => {
+    result.value = `${input.value / item.exchangeRate}`;
+  });
+  result.addEventListener('input', () => {
+    input.value = `${result.value * item.exchangeRate}`;
+  });
+};
+const openModalBuy = () => {
+  const modal = document.querySelector('.modal.modal--buy');
+  modal.style.display = 'block';
+
+};
+const closeModalBuy = () => {
+  const modal = document.querySelector('.modal.modal--buy');
+  modal.style.display = 'none';
+};
+
+const modalCloseBtn = document.querySelector('.modal__close-btn');
+modalCloseBtn.addEventListener('click', () => {
+  closeModalBuy();
+});
 const createCounterpartiesListData = (item) => {
   const { userName, balance, exchangeRate } = item;
   const list = userTableRowTemplate.cloneNode(true);
@@ -65,6 +94,11 @@ const createCounterpartiesListData = (item) => {
   list.querySelector('.users-list__table-cashlimit').textContent = userBalanceCurrency(item);
   userIsVerified(list, item, '.users-list__table-name svg');
   counterpartiesStatusSeller(list, item, '.users-list__badges-list');
+  const btn = list.querySelector('.btn--greenborder');
+  btn.addEventListener('click', () => {
+    openModalBuy();
+    renderModalCounterparties(item);
+  });
   return list;
 };
 const renderCounterparties = (data) => {
@@ -81,6 +115,8 @@ const renderCounterparties = (data) => {
 
 
 // ===== TOGGLE.JS ===== //
+
+// ДОМ ЭЛЕМЕНТЫ
 const tabsToggleBuySell = document.querySelector('.tabs--toggle-buy-sell');
 const tabsControls = tabsToggleBuySell.querySelector('.tabs__controls');
 const allButtons = tabsControls.querySelectorAll('.tabs__control');
@@ -91,11 +127,11 @@ const mapContainer = document.querySelector('.map');
 const tabsMap = document.querySelector('.tabs--toggle-list-map');
 const allButtonsMap = tabsMap.querySelectorAll('.tabs__control');
 
+// ПРОВЕРКА ПО КАНТРААГЕНТАМ SELLER ИЛИ BUYER
 const getFilteredTab = () => {
   const currentActiveButton = tabsControls.querySelector('.tabs__control.is-active');
   return currentActiveButton.textContent.trim() === 'Купить' ? 'seller' : 'buyer';
 };
-
 const getFilteredVerifiedStatus = (data, status, onlyVerified) => {
   let filetred = data.filter((item) => item.status === status);
   if (onlyVerified) {
@@ -111,14 +147,15 @@ const getFilteredData = (data) => {
 const resetChecked = () => {
   checkedUsers.checked = false;
 };
+// ===== MAP.JS ===== //
 
-// КООРДИНАТЫ ПО ДЕФОЛТУ
+// КООРТИНАДЫ ПО ДЕФОЛТУ
 const MAP_COORDINATES_DEFAULT = {
   lat: 59.92749,
   lng: 30.31127,
   view: 9
 };
-// CОЗДАЕМ КАРТУ
+// ОТОБРАЖЕНИЕ МОДАЛЬКИ ПО КЛИКУ НА КАРТУ ПО ПОЛЬЗОВАТЕЛЮ
 const mapPinBaloon = (item) => {
   const baloonTemplate = document.querySelector('#map-baloon__template').content.querySelector('.user-card');
   const baloonElement = baloonTemplate.cloneNode(true);
@@ -128,9 +165,9 @@ const mapPinBaloon = (item) => {
   baloonElement.querySelector('[data-cash="limit"]').textContent = userBalanceCurrency(item);
   counterpartiesStatusSeller(baloonElement, item, '.user-card__badges-list');
   userIsVerified(baloonElement, item, '.user-card__user-name svg');
-
   return baloonElement;
 };
+// ИКОНКА ДЛЯ ПИНА
 const mapPinIcon = (isVerified) => {
   const markerIcon = L.icon({
     iconUrl: `./img/${isVerified ? 'pin-verified' : 'pin'}.svg`,
@@ -139,26 +176,37 @@ const mapPinIcon = (isVerified) => {
   });
   return markerIcon;
 };
+// ПИН
+const createPin = (item, group) => {
+  const { coords, isVerified } = item;
+  if (!coords) { return; }
+  const pimarker = L.marker(
+    {
+      lat: coords.lat,
+      lng: coords.lng,
+    },
+    {
+      icon: mapPinIcon(isVerified)
+
+    }
+  );
+
+  pimarker
+    .addTo(group)
+    .bindPopup(mapPinBaloon(item));
+  return pimarker;
+};
 const mapPinAdd = (data, group) => {
   data.forEach((item) => {
-    const { coords, isVerified } = item;
-    if (!coords) { return; }
-    const pimarker = L.marker(
-      {
-        lat: coords.lat,
-        lng: coords.lng,
-      },
-      {
-        icon: mapPinIcon(isVerified)
-
-      }
-    );
-    pimarker
-      .addTo(group)
-      .bindPopup(mapPinBaloon(item));
+    if (!item.paymentMethods) { return; }
+    const res = item.paymentMethods.some((i) => i.provider === 'Cash in person');
+    if (res) {
+      return createPin(item, group);
+    }
   });
 };
-const mapCreate = (data, container) => {
+// СОЗДАЕМ КАРТУ
+const mapCreate = (container) => {
   const map = L.map(container)
     .setView({
       lat: MAP_COORDINATES_DEFAULT.lat,
@@ -170,22 +218,30 @@ const mapCreate = (data, container) => {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>',
     },
   ).addTo(map);
-  mapPinAdd(data, map);
   return map;
 };
+
+// ВСЕ ИНИЦИАЛАЗИЦИИ
 const initToggleEventListener = (data) => {
   resetChecked();
   renderCounterparties(getFilteredData(data));
-  const maps = mapCreate(data, mapContainer);
+  const maps = mapCreate(mapContainer);
+
+  const groups = L.layerGroup().addTo(maps);
+  mapPinAdd(getFilteredData(data), groups);
 
   tabsControls.addEventListener('click', (e) => {
     const clickButton = e.target.classList.contains('tabs__control');
     if (!clickButton) { return; }
     allButtons.forEach((btn) => btn.classList.toggle('is-active', btn === e.target));
     renderCounterparties(getFilteredData(data));
+    groups.clearLayers();
+    mapPinAdd(getFilteredData(data), groups);
   });
   checkedUsers.addEventListener('change', () => {
     renderCounterparties(getFilteredData(data));
+    groups.clearLayers();
+    mapPinAdd(getFilteredData(data), groups);
   });
   tabsMap.addEventListener('click', (e) => {
     const clickButton = e.target.classList.contains('tabs__control');
@@ -198,15 +254,16 @@ const initToggleEventListener = (data) => {
     maps.invalidateSize();
   });
 };
-
-
 // ===== MAIN.JS ===== //
+
+// ССЫЛКИ НА БД
 const DATAURL = {
   user: 'https://cryptostar.grading.htmlacademy.pro/user',
   contract: 'https://cryptostar.grading.htmlacademy.pro/contractors'
 };
 // ACCESSING THE SERVER AND OUTPUTTING DATA
 getData(DATAURL.user, (data) => {
+  console.log(data)
   userProfiles(data);
 }, () => {
   failUserData();
@@ -215,3 +272,5 @@ getData(DATAURL.contract, (data) => {
   initToggleEventListener(data);
   console.log(data);
 });
+
+
