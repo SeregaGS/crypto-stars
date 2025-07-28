@@ -8,7 +8,7 @@ const getData = (url, onSuccess, onError = console.error) => {
 
 // ===== USER.JS ===== //
 const userProfileName = document.querySelector('.user-profile__name span');
-const userBalance = document.querySelector('#user-fiat-balance');
+const userFiatBalance = document.querySelector('#user-fiat-balance');
 const userCryptoBalance = document.querySelector('#user-crypto-balance');
 const userProfile = document.querySelector('.user-profile');
 
@@ -17,13 +17,10 @@ const failUserData = () => {
 };
 const userProfiles = ({ userName, balances }) => {
   userProfileName.textContent = userName;
-  balances.forEach((element) => {
-    if (element.currency === 'RUB') {
-      userBalance.textContent = element.amount;
-    } else {
-      userCryptoBalance.textContent = element.amount;
-    }
-  });
+  const fiatCurrency = balances.find((currency) => currency.currency === 'RUB');
+  const cryptoCurrency = balances.find((currency) => currency.currency === 'KEKS');
+  userFiatBalance.textContent = fiatCurrency ? fiatCurrency.amount : '0';
+  userCryptoBalance.textContent = cryptoCurrency ? cryptoCurrency.amount : '0';
 };
 
 // ===== COUNTERPARTIES.JS ===== //
@@ -65,10 +62,10 @@ const renderModalCounterparties = (item) => {
   const input = modalBuy.querySelector('[data-payment="pay"]');
   const result = modalBuy.querySelector('[data-payment="crypto"]');
   input.addEventListener('input', () => {
-    result.value = `${input.value / item.exchangeRate}`;
+    result.value = `${(input.value / item.exchangeRate).toFixed(2)}`;
   });
   result.addEventListener('input', () => {
-    input.value = `${result.value * item.exchangeRate}`;
+    input.value = `${(result.value * item.exchangeRate).toFixed(2)}`;
   });
 };
 const openModalBuy = () => {
