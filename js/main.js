@@ -27,32 +27,34 @@ const userProfiles = ({ userName = 'Гость', balances }) => {
 const usersListContainer = document.querySelector('.users-list__table-body');
 const userTableRowTemplate = document.querySelector('#user-table-row__template').content;
 
-const createBadgeElement = (element, provider, classList = []) => {
+const createBadgeElement = (element, provider, selector = []) => {
   const el = document.createElement(element);
-  if (classList.length >= 1) {
-    el.classList.add(...classList);
+  if (selector.length >= 1) {
+    el.classList.add(...selector);
   }
   el.textContent = provider.provider;
   return el;
 };
-const removeProvideBadge = (containers, classList) => {
-  const container = containers.querySelector(classList);
-  container.replaceChildren();
+const removeProvideBadge = (containers, selector, n = 0) => {
+  const container = containers.querySelector(selector);
+  while (container.children.length > n) {
+    container.removeChild(container.lastChild);
+  }
 };
-const userBalanceCurrency = (item) => (item.balance.currency === 'KEKS')
-  ? `${(item.minAmount * item.exchangeRate).toFixed(2)} ₽ - ${(item.balance.amount * item.exchangeRate).toFixed(2)} ₽`
+const counterpartiesStatusSeller = (containers, item, selector, classList, tagName = 'li', n) => {
+  removeProvideBadge(containers, selector, n);
+  if (item.status === 'seller') {
+    item.paymentMethods.forEach((provider) => {
+      containers.querySelector(selector).append(createBadgeElement(tagName, provider, classList));
+    });
+  }
+};
+const counterpartiesBalanceCurrency = (item) => (item.balance.currency === 'KEKS')
+  ? `${(item.minAmount).toFixed(2)} KEKS - ${(item.balance.amount).toFixed(2)} KEKS`
   : `${item.minAmount} ₽ - ${item.balance.amount} ₽`;
 const userIsVerified = (containers, item, classStyle) => {
   if (!item.isVerified) {
     containers.querySelector(classStyle).style.display = 'none';
-  }
-};
-const counterpartiesStatusSeller = (containers, item, classList) => {
-  removeProvideBadge(containers, classList);
-  if (item.status === 'seller') {
-    item.paymentMethods.forEach((provider) => {
-      containers.querySelector(classList).append(createBadgeElement('li', provider, ['badge']));
-    });
   }
 };
 
@@ -60,14 +62,15 @@ const modalBuy = document.querySelector('.modal-buy');
 const renderModalCounterparties = (item) => {
   modalBuy.querySelector('.transaction-info__data').lastChild.textContent = item.userName;
   modalBuy.querySelector('.transaction-info__item--exchangerate .transaction-info__data').textContent = item.exchangeRate;
-  modalBuy.querySelector('.transaction-info__item--cashlimit .transaction-info__data').textContent = userBalanceCurrency(item);
+  modalBuy.querySelector('.transaction-info__item--cashlimit .transaction-info__data').textContent = counterpartiesBalanceCurrency(item);
+  counterpartiesStatusSeller(modalBuy, item, '.select select', '', 'option', 1);
   const input = modalBuy.querySelector('[data-payment="pay"]');
   const result = modalBuy.querySelector('[data-payment="crypto"]');
   input.addEventListener('input', () => {
-    result.value = `${(input.value / item.exchangeRate).toFixed(2)}`;
+    result.value = `${(input.value / item.exchangeRate).toFixed(5)}`;
   });
   result.addEventListener('input', () => {
-    input.value = `${(result.value * item.exchangeRate).toFixed(2)}`;
+    input.value = `${(result.value * item.exchangeRate).toFixed(5)}`;
   });
 };
 const openModalBuy = () => {
@@ -90,9 +93,9 @@ const createCounterpartiesListData = (item) => {
   list.querySelector('.users-list__table-name span').textContent = userName;
   list.querySelector('.users-list__table-currency').textContent = balance.currency;
   list.querySelector('.users-list__table-exchangerate').textContent = `${exchangeRate} ₽`;
-  list.querySelector('.users-list__table-cashlimit').textContent = userBalanceCurrency(item);
+  list.querySelector('.users-list__table-cashlimit').textContent = counterpartiesBalanceCurrency(item);
   userIsVerified(list, item, '.users-list__table-name svg');
-  counterpartiesStatusSeller(list, item, '.users-list__badges-list');
+  counterpartiesStatusSeller(list, item, '.users-list__badges-list', ['users-list__badges-item', 'badge']);
   const btn = list.querySelector('.btn--greenborder');
   btn.addEventListener('click', () => {
     openModalBuy();
@@ -161,8 +164,8 @@ const mapPinBaloon = (item) => {
   baloonElement.querySelector('.user-card__user-name span').textContent = item.userName;
   baloonElement.querySelector('[data-cash="currency"]').textContent = item.balance.currency;
   baloonElement.querySelector('[data-cash="exchange-rate"]').textContent = `${item.exchangeRate} ₽`;
-  baloonElement.querySelector('[data-cash="limit"]').textContent = userBalanceCurrency(item);
-  counterpartiesStatusSeller(baloonElement, item, '.user-card__badges-list');
+  baloonElement.querySelector('[data-cash="limit"]').textContent = counterpartiesBalanceCurrency(item);
+  counterpartiesStatusSeller(baloonElement, item, '.user-card__badges-list', ['users-list__badges-item', 'badge']);
   userIsVerified(baloonElement, item, '.user-card__user-name svg');
   return baloonElement;
 };
