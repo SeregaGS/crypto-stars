@@ -15,7 +15,7 @@ const userProfile = document.querySelector('.user-profile');
 const failUserData = () => {
   userProfile.style.display = 'none';
 };
-const userProfiles = ({ userName, balances }) => {
+const userProfiles = ({ userName = 'Гость', balances }) => {
   userProfileName.textContent = userName;
   const fiatCurrency = balances.find((currency) => currency.currency === 'RUB');
   const cryptoCurrency = balances.find((currency) => currency.currency === 'KEKS');
@@ -27,11 +27,13 @@ const userProfiles = ({ userName, balances }) => {
 const usersListContainer = document.querySelector('.users-list__table-body');
 const userTableRowTemplate = document.querySelector('#user-table-row__template').content;
 
-const createBadgeElement = (provider) => {
-  const li = document.createElement('li');
-  li.classList.add('users-list__badges-item', 'badge');
-  li.textContent = provider.provider;
-  return li;
+const createBadgeElement = (element, provider, classList = []) => {
+  const el = document.createElement(element);
+  if (classList.length >= 1) {
+    el.classList.add(...classList);
+  }
+  el.textContent = provider.provider;
+  return el;
 };
 const removeProvideBadge = (containers, classList) => {
   const container = containers.querySelector(classList);
@@ -49,7 +51,7 @@ const counterpartiesStatusSeller = (containers, item, classList) => {
   removeProvideBadge(containers, classList);
   if (item.status === 'seller') {
     item.paymentMethods.forEach((provider) => {
-      containers.querySelector(classList).append(createBadgeElement(provider));
+      containers.querySelector(classList).append(createBadgeElement('li', provider, ['badge']));
     });
   }
 };
