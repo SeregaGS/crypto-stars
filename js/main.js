@@ -41,8 +41,7 @@ const clearBandgeContainer = (containers, selector, n = 0) => {
     container.removeChild(container.lastChild);
   }
 };
-const renderCounterpartiesPaymentSeller = (containers, item, selector, classList, tagName = 'li', n) => {
-  clearBandgeContainer(containers, selector, n);
+const renderCounterpartiesPaymentSeller = (containers, item, selector, classList, tagName = 'li') => {
   if (item.status === 'seller') {
     item.paymentMethods.forEach((provider) => {
       containers.querySelector(selector).append(createBadgeElement(tagName, provider, classList));
@@ -68,21 +67,21 @@ const renderModalCounterparties = (item) => {
   modalBuy.querySelector('.transaction-info__data').lastChild.textContent = item.userName;
   modalBuy.querySelector('.transaction-info__item--exchangerate .transaction-info__data').textContent = `${item.exchangeRate} ₽`;
   modalBuy.querySelector('.transaction-info__item--cashlimit .transaction-info__data').textContent = counterpartiesBalanceCurrency(item);
-  renderCounterpartiesPaymentSeller(modalBuy, item, '.select select', '', 'option', 1);
+  clearBandgeContainer(modalBuy, 'select', 1);
+  renderCounterpartiesPaymentSeller(modalBuy, item, '.select select', '', 'option');
   const select = modalBuy.querySelector('.select select');
   select.addEventListener('change', (e) => {
     const { paymentMethods } = item;
     const a = paymentMethods.find((prov) => e.target.value === prov.provider);
     customInput.placeholder = (a.provider === 'Cash in person') ? '' : a.accountNumber;
-
   });
   const input = modalBuy.querySelector('[data-payment="pay"]');
   const result = modalBuy.querySelector('[data-payment="crypto"]');
   input.addEventListener('input', () => {
-    result.value = `${(input.value / item.exchangeRate).toFixed(4)}`;
+    result.value = `${(Number(input.value) / item.exchangeRate).toFixed(4)}`;
   });
   result.addEventListener('input', () => {
-    input.value = `${(result.value * item.exchangeRate).toFixed(4)}`;
+    input.value = `${(Number(result.value) * item.exchangeRate).toFixed(4)}`;
   });
 };
 const openModalBuy = () => {
@@ -90,12 +89,12 @@ const openModalBuy = () => {
   modal.style.display = 'block';
 
 };
+
 const closeModalBuy = () => {
   const modal = document.querySelector('.modal.modal--buy');
   modal.style.display = 'none';
   customInput.placeholder = originalPlaceholder;
   modalBuy.reset();
-
 };
 
 const modalCloseBtn = document.querySelector('.modal__close-btn');
@@ -110,6 +109,7 @@ const createCounterpartiesListData = (item) => {
   list.querySelector('.users-list__table-exchangerate').textContent = `${exchangeRate} ₽`;
   list.querySelector('.users-list__table-cashlimit').textContent = counterpartiesBalanceCurrency(item);
   counterpartiesIsVerified(list, item, '.users-list__table-name svg');
+  clearBandgeContainer(list, '.users-list__badges-list');
   renderCounterpartiesPaymentSeller(list, item, '.users-list__badges-list', ['users-list__badges-item', 'badge']);
   const btn = list.querySelector('.btn--greenborder');
   btn.addEventListener('click', () => {
@@ -177,6 +177,7 @@ const mapPinBaloon = (item) => {
   baloonElement.querySelector('[data-cash="currency"]').textContent = item.balance.currency;
   baloonElement.querySelector('[data-cash="exchange-rate"]').textContent = `${item.exchangeRate} ₽`;
   baloonElement.querySelector('[data-cash="limit"]').textContent = counterpartiesBalanceCurrency(item);
+  clearBandgeContainer(baloonElement, '.user-card__badges-list');
   renderCounterpartiesPaymentSeller(baloonElement, item, '.user-card__badges-list', ['users-list__badges-item', 'badge']);
   counterpartiesIsVerified(baloonElement, item, '.user-card__user-name svg');
   return baloonElement;
@@ -277,14 +278,14 @@ const DATAURL = {
 };
 // ACCESSING THE SERVER AND OUTPUTTING DATA
 getData(DATAURL.user, (data) => {
-  console.log(data);
+  // console.log(data);
   userProfiles(data);
 }, () => {
   failUserData();
 });
 getData(DATAURL.contract, (data) => {
   initToggleEventListener(data);
-  console.log(data);
+  // console.log(data);
 });
 
 
