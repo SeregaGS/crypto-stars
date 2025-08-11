@@ -78,10 +78,10 @@ const renderModalCounterparties = (item) => {
   const input = modalBuy.querySelector('[data-payment="pay"]');
   const result = modalBuy.querySelector('[data-payment="crypto"]');
   input.addEventListener('input', () => {
-    result.value = `${(Number(input.value) / item.exchangeRate).toFixed(4)}`;
+    result.value = `${(Number(input.value) / item.exchangeRate).toFixed(2)}`;
   });
   result.addEventListener('input', () => {
-    input.value = `${(Number(result.value) * item.exchangeRate).toFixed(4)}`;
+    input.value = `${(Number(result.value) * item.exchangeRate).toFixed(2)}`;
   });
 };
 const openModalBuy = () => {
