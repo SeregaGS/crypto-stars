@@ -68,7 +68,7 @@ const renderModalCounterparties = (item) => {
   modalBuy.querySelector('.transaction-info__item--exchangerate .transaction-info__data').textContent = `${item.exchangeRate} ₽`;
   modalBuy.querySelector('.transaction-info__item--cashlimit .transaction-info__data').textContent = counterpartiesBalanceCurrency(item);
   clearBandgeContainer(modalBuy, '.select select', 1);
-  // renderCounterpartiesPaymentSeller(modalBuy, item, '.select select', '', 'option');
+  renderCounterpartiesPaymentSeller(modalBuy, item, '.select select', '', 'option');
   const select = modalBuy.querySelector('.select select');
   select.addEventListener('change', (e) => {
     const { paymentMethods } = item;
