@@ -1,25 +1,42 @@
 import { clearBandgeContainer, renderCounterpartiesPaymentSeller, counterpartiesIsVerified, counterpartiesBalanceCurrency } from './util.js';
 
-// КООРДИНАТЫ ПО ДЕФОЛТУ
+
+const TILE_LAYER = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>';
+const PROVIDER = 'Cash in person';
+
 const MAP_COORDINATES_DEFAULT = {
   lat: 59.92749,
   lng: 30.31127,
   view: 9
 };
 
-const mapPinBaloon = (item) => {
-  const baloonTemplate = document.querySelector('#map-baloon__template').content.querySelector('.user-card');
-  const baloonElement = baloonTemplate.cloneNode(true);
-  baloonElement.querySelector('.user-card__user-name span').textContent = item.userName;
-  baloonElement.querySelector('[data-cash="currency"]').textContent = item.balance.currency;
-  baloonElement.querySelector('[data-cash="exchange-rate"]').textContent = `${item.exchangeRate} ₽`;
-  baloonElement.querySelector('[data-cash="limit"]').textContent = counterpartiesBalanceCurrency(item);
-  clearBandgeContainer(baloonElement, '.user-card__badges-list');
-  renderCounterpartiesPaymentSeller(baloonElement, item, '.user-card__badges-list', ['users-list__badges-item', 'badge']);
-  counterpartiesIsVerified(baloonElement, item, '.user-card__user-name svg');
-  return baloonElement;
+const SELECTORS = {
+  counterpartyCard: '.user-card',
+  counterpartyCardSvg: '.user-card__user-name svg',
+  counterpartyName: '.user-card__user-name span',
+  currency: '[data-cash="currency"]',
+  exchangeRate: '[data-cash="exchange-rate"]',
+  limit: '[data-cash="limit"]',
+  badgesList: '.user-card__badges-list',
+  badgesItem: ['users-list__badges-item', 'badge']
 };
 
+// Создаём DOM-элемент балуна (всплывающего окна) для маркера на карте
+const mapPinBalloon = (counterparty) => {
+  const { userName, balance, exchangeRate } = counterparty;
+  const balloonTemplate = document.querySelector('#map-baloon__template').content.querySelector(SELECTORS.counterpartyCard);
+  const balloonElement = balloonTemplate.cloneNode(true);
+  balloonElement.querySelector(SELECTORS.counterpartyName).textContent = userName;
+  balloonElement.querySelector(SELECTORS.currency).textContent = balance.currency;
+  balloonElement.querySelector(SELECTORS.exchangeRate).textContent = exchangeRate.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' });
+  balloonElement.querySelector(SELECTORS.limit).textContent = counterpartiesBalanceCurrency(counterparty);
+  clearBandgeContainer(balloonElement, SELECTORS.badgesList);
+  renderCounterpartiesPaymentSeller(balloonElement, counterparty, SELECTORS.badgesList, SELECTORS.badgesItem);
+  counterpartiesIsVerified(balloonElement, counterparty, SELECTORS.counterpartyCardSvg);
+  return balloonElement;
+};
+// Возвращаем иконку маркера в зависимости от статуса верификации.
 const mapPinIcon = (isVerified) => {
   const markerIcon = L.icon({
     iconUrl: `./img/${isVerified ? 'pin-verified' : 'pin'}.svg`,
@@ -28,37 +45,30 @@ const mapPinIcon = (isVerified) => {
   });
   return markerIcon;
 };
-
+// Создаём и добавляем маркер на карту.
 const createPin = (item, group) => {
   const { coords, isVerified } = item;
   if (!coords) { return; }
   const pimarker = L.marker(
-    {
-      lat: coords.lat,
-      lng: coords.lng,
-    },
-    {
-      icon: mapPinIcon(isVerified)
-
-    }
+    { lat: coords.lat, lng: coords.lng },
+    { icon: mapPinIcon(isVerified) }
   );
-
   pimarker
     .addTo(group)
-    .bindPopup(mapPinBaloon(item));
+    .bindPopup(mapPinBalloon(item));
   return pimarker;
 };
-
+// Добавляем маркеры на карту для контагентов с методом оплаты "Cash in person".
 const mapPinAdd = (data, group) => {
   data.forEach((item) => {
     if (!item.paymentMethods) { return; }
-    const res = item.paymentMethods.some((i) => i.provider === 'Cash in person');
+    const res = item.paymentMethods.some((i) => i.provider === PROVIDER);
     if (res) {
       return createPin(item, group);
     }
   });
 };
-
+// Создаём и инициализируем карту.
 const mapCreate = (container) => {
   const map = L.map(container)
     .setView({
@@ -66,9 +76,9 @@ const mapCreate = (container) => {
       lng: MAP_COORDINATES_DEFAULT.lng,
     }, MAP_COORDINATES_DEFAULT.view);
   L.tileLayer(
-    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    TILE_LAYER,
     {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>',
+      attribution: ATTRIBUTION,
     },
   ).addTo(map);
   return map;
