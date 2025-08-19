@@ -36,40 +36,28 @@ const paymentChange = (container, item, e) => {
   const paymentMethod = paymentMethods.find((prov) => e.target.value === prov.provider);
   container.placeholder = (paymentMethod.provider === PROVIDER) ? '' : paymentMethod.accountNumber;
 };
-const isBuyModal = (type) => type === 'sell';
-const renderCounterpartiesModal = (modal, item, user, type) => {
-  const isBuyModal = type === 'sell';
+// const isBuyModal = (type) => type === 'sell';
 
-  modal.provider = isBuyModal ? item : user;
+const renderCryptoWallet = (modal, isBuy, user, item) => {
+  modal.querySelector(SELECTORS.cryptoNumber).placeholder = isBuy ? user.wallet.address : item.wallet.address;
+};
+const renderPaymentMethodsModal = (modal, provider) => {
+  clearBandgeContainer(modal, SELECTORS.bandgeList, 1);
+  renderBandgePayMethods(modal, provider, SELECTORS.bandgeList, '', SELECTORS.bandgeItem);
+};
+const fillModalData = (modal, item) => {
   modal.querySelector(SELECTORS.userName).lastChild.textContent = item.userName;
   modal.querySelector(SELECTORS.exchangeRate).textContent = `${item.exchangeRate} ₽`;
   modal.querySelector(SELECTORS.balanceCurrency).textContent = counterpartiesBalanceCurrency(item);
-  modal.querySelector(SELECTORS.cryptoNumber).placeholder = isBuyModal ? user.wallet.address : item.wallet.address;
+};
+const renderCounterpartiesModal = (modal, item, user, type) => {
+  const isBuyModal = type === 'sell';
+  modal.provider = isBuyModal ? item : user;
+  fillModalData(modal, item)
+  renderCryptoWallet(modal, isBuyModal, user, item);
   counterpartiesIsVerified(modal, item, SELECTORS.isVerify);
-  clearBandgeContainer(modal, SELECTORS.bandgeList, 1);
-  renderBandgePayMethods(modal, modal.provider, SELECTORS.bandgeList, '', SELECTORS.bandgeItem);
+  renderPaymentMethodsModal(modal, modal.provider);
 };
-const renderCounterpartiesSell = (item, user) => {
-  DOMElements.formModalSell.provider = item;
-  DOMElements.formModalSell.querySelector(SELECTORS.userName).lastChild.textContent = item.userName;
-  DOMElements.formModalSell.querySelector(SELECTORS.exchangeRate).textContent = `${item.exchangeRate} ₽`;
-  DOMElements.formModalSell.querySelector(SELECTORS.balanceCurrency).textContent = counterpartiesBalanceCurrency(item);
-  DOMElements.formModalSell.querySelector(SELECTORS.cryptoNumber).placeholder = user.wallet.address;
-  counterpartiesIsVerified(DOMElements.formModalSell, item, SELECTORS.isVerify);
-  clearBandgeContainer(DOMElements.formModalSell, SELECTORS.bandgeList, 1);
-  renderCounterpartiesPaymentSeller(DOMElements.formModalSell, item, SELECTORS.bandgeList, '', SELECTORS.bandgeItem);
-};
-const renderCounterpartiesBuy = (item, user) => {
-  DOMElements.formModalBuy.provider = user;
-  DOMElements.formModalBuy.querySelector(SELECTORS.userName).lastChild.textContent = item.userName;
-  DOMElements.formModalBuy.querySelector(SELECTORS.exchangeRate).textContent = `${item.exchangeRate} ₽`;
-  DOMElements.formModalBuy.querySelector(SELECTORS.balanceCurrency).textContent = counterpartiesBalanceCurrency(item);
-  DOMElements.formModalBuy.querySelector(SELECTORS.cryptoNumber).placeholder = item.wallet.address;
-  counterpartiesIsVerified(DOMElements.formModalBuy, item, SELECTORS.isVerify);
-  clearBandgeContainer(DOMElements.formModalBuy, SELECTORS.bandgeList, 1);
-  renderBandgePayMethods(DOMElements.formModalBuy, user, SELECTORS.bandgeList, '', SELECTORS.bandgeItem);
-};
-
 const renderCounterpartiesAll = (item, user) => {
   if (getFilteredTab(DOMElements.tabsControls) === 'seller') {
     renderCounterpartiesModal(DOMElements.formModalSell, item, user, 'sell');
