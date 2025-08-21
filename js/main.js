@@ -1,7 +1,8 @@
 // import { getData } from './api.js';
 import { userProfiles, failUserData } from './user.js';
 import { mapCreate, mapPinAdd } from './map.js';
-import { renderCounterparties } from './сounterparties.js';
+import { renderCounterparties } from './counterparties.js';
+import { getFilteredData } from './filter.js';
 
 
 // ===== TOGGLE.JS ===== //
@@ -18,62 +19,59 @@ const tabsMap = document.querySelector('.tabs--toggle-list-map');
 const allButtonsMap = tabsMap.querySelectorAll('.tabs__control');
 
 
-const getFilteredTab = () => {
-  const currentActiveButton = tabsControls.querySelector('.tabs__control.is-active');
-  return currentActiveButton.textContent.trim() === 'Купить' ? 'seller' : 'buyer';
-};
-const getFilteredVerifiedStatus = (data, status, onlyVerified) => {
-  let filtered = data.filter((item) => item.status === status);
-  if (onlyVerified) {
-    filtered = filtered.filter((item) => item.isVerified);
-  }
-  return filtered;
-};
-const getFilteredData = (data) => {
-  const status = getFilteredTab();
-  const onlyVerified = checkedUsers.checked;
-  return getFilteredVerifiedStatus(data, status, onlyVerified);
-};
 const resetChecked = () => {
   checkedUsers.checked = false;
 };
+const renderFiltered = (data, groups, tabs, checked, user) => {
+  const filtered = getFilteredData(data, tabs, checked);
+  renderCounterparties(filtered, user);
+  groups.clearLayers();
+  mapPinAdd(filtered, groups);
+};
+const tabsRenderCounterparties = (data, groups, user) => (e) => {
+  const clickButton = e.target.classList.contains('tabs__control');
 
+  if (!clickButton) { return; }
+
+  allButtons.forEach((btn) => btn.classList.toggle('is-active', btn === e.target));
+
+  renderFiltered(data, groups, tabsControls, checkedUsers, user);
+};
+const checkedRenderCounterparties = (data, groups) => () => {
+  renderFiltered(data, groups, tabsControls, checkedUsers);
+};
+const mapIsView = (isMapView) => {
+  mapContainer.parentElement.style.display = isMapView ? 'block' : 'none';
+  usersNavContainer.style.display = isMapView ? 'none' : 'block';
+  mapContainer.style.zIndex = 1;
+};
+const mapContainerIsView = (activeBtn) => {
+  const currentActiveButton = activeBtn.querySelector('.tabs__control.is-active');
+  const isMapView = currentActiveButton.textContent.trim() === 'Карта';
+  mapIsView(isMapView);
+};
+const tabsMapsRenderCounterparties = (buttons, activeBtn, maps) => (e) => {
+  const clickButton = e.target.classList.contains('tabs__control');
+  if (!clickButton) { return; }
+  buttons.forEach((btn) => btn.classList.toggle('is-active', btn === e.target));
+  mapContainerIsView(activeBtn);
+  maps.invalidateSize();
+};
+const initDefaultData = (data, tabs, checked, groups, user) => {
+  const filtered = getFilteredData(data, tabs, checked);
+  renderCounterparties(filtered, user);
+  mapPinAdd(filtered, groups);
+};
 // ВСЕ ИНИЦИАЛАЗИЦИИ
-const initToggleEventListener = (data) => {
+const initToggleEventListener = (data, user) => {
   resetChecked();
-  renderCounterparties(getFilteredData(data));
   const maps = mapCreate(mapContainer);
   const groups = L.layerGroup().addTo(maps);
-  mapPinAdd(getFilteredData(data), groups);
-
-  tabsControls.addEventListener('click', (e) => {
-    const clickButton = e.target.classList.contains('tabs__control');
-    if (!clickButton) { return; }
-    allButtons.forEach((btn) => btn.classList.toggle('is-active', btn === e.target));
-    renderCounterparties(getFilteredData(data));
-    groups.clearLayers();
-    mapPinAdd(getFilteredData(data), groups);
-  });
-  checkedUsers.addEventListener('change', () => {
-    renderCounterparties(getFilteredData(data));
-    groups.clearLayers();
-    mapPinAdd(getFilteredData(data), groups);
-  });
-  tabsMap.addEventListener('click', (e) => {
-    const clickButton = e.target.classList.contains('tabs__control');
-    if (!clickButton) { return; }
-    allButtonsMap.forEach((btn) => btn.classList.toggle('is-active', btn === e.target));
-    const currentActiveButton = tabsMap.querySelector('.tabs__control.is-active');
-    const isMapView = currentActiveButton.textContent.trim() === 'Карта';
-    mapContainer.parentElement.style.display = isMapView ? 'block' : 'none';
-    usersNavContainer.style.display = isMapView ? 'none' : 'block';
-    maps.invalidateSize();
-  });
+  initDefaultData(data, tabsControls, checkedUsers, groups, user);
+  tabsControls.addEventListener('click', tabsRenderCounterparties(data, groups, user));
+  checkedUsers.addEventListener('change', checkedRenderCounterparties(data, groups));
+  tabsMap.addEventListener('click', tabsMapsRenderCounterparties(allButtonsMap, tabsMap, maps));
 };
-const ddd = (users, contract) => {
-  console.log(users, contract);
-}
-// ===== MAIN.JS ===== //
 
 // ССЫЛКИ НА БД
 const DATAURL = {
@@ -97,7 +95,6 @@ const getData = async (url, onError) => {
     throw error;
   }
 };
-
 const allInitData = async () => {
   try {
     const [user, contractor] = await Promise.allSettled([
@@ -107,26 +104,15 @@ const allInitData = async () => {
     if (user.status === 'fulfilled') {
       userProfiles(user.value);
     }
-    if (contractor.status === 'fulfilled') {
-      initToggleEventListener(contractor.value);
+    if (contractor.status === 'fulfilled' && user.status === 'fulfilled') {
+      console.log(contractor.value)
+      initToggleEventListener(contractor.value, user.value);
     }
-    ddd(user.value, contractor.value);
   }
   catch (error) {
     console.error(error);
   }
 };
 allInitData();
-// getData(DATAURL.user, (data) => {
-//   console.log(data);
-//   userProfiles(data);
-// }, () => {
-//   failUserData();
-// });
-
-// getData(DATAURL.contract, (data) => {
-//   initToggleEventListener(data);
-//   console.log(data);
-// });
 
 
