@@ -47,6 +47,7 @@ const mapPinBalloon = (counterparty, user) => {
   counterpartiesIsVerified(balloonElement, counterparty, SELECTORS.counterpartyCardSvg);
   balloonElement.querySelector(SELECTORS.btnOpenModal).addEventListener('click', () => {
     openModal(getFilteredTab(DOMElements.tabsControls));
+    renderCounterpartiesAll(counterparty, user);
   });
   return balloonElement;
 };
