@@ -2,10 +2,10 @@ import {
   clearBandgeContainer,
   renderBandgePayMethods,
   counterpartiesIsVerified,
-  counterpartiesBalanceCurrency
+  counterpartiesBalanceCurrency,
 } from './util.js';
 import { getFilteredTab } from './filter.js';
-import { openModal } from './modal.js';
+import { openModal, renderCounterpartiesModal } from './modal.js';
 
 const TILE_LAYER = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>';
@@ -13,6 +13,7 @@ const PROVIDER = 'Cash in person';
 
 const DOMElements = {
   tabsControls: document.querySelector('.tabs__controls'),
+  formModalSell: document.querySelector('.modal-buy'),
   templateBaloon: document.querySelector('#map-baloon__template')
 };
 const MAP_COORDINATES_DEFAULT = {
@@ -47,7 +48,7 @@ const mapPinBalloon = (counterparty, user) => {
   counterpartiesIsVerified(balloonElement, counterparty, SELECTORS.counterpartyCardSvg);
   balloonElement.querySelector(SELECTORS.btnOpenModal).addEventListener('click', () => {
     openModal(getFilteredTab(DOMElements.tabsControls));
-    renderCounterpartiesAll(counterparty, user);
+    renderCounterpartiesModal(DOMElements.formModalSell, counterparty, user, 'sell');
   });
   return balloonElement;
 };
@@ -61,8 +62,8 @@ const mapPinIcon = (isVerified) => {
   return markerIcon;
 };
 // Создаём и добавляем маркер на карту.
-const createPin = (item, group) => {
-  const { coords, isVerified } = item;
+const createPin = (counterparty, user, group) => {
+  const { coords, isVerified } = counterparty;
   if (!coords) { return; }
   const pimarker = L.marker(
     { lat: coords.lat, lng: coords.lng },
@@ -70,16 +71,16 @@ const createPin = (item, group) => {
   );
   pimarker
     .addTo(group)
-    .bindPopup(mapPinBalloon(item));
+    .bindPopup(mapPinBalloon(counterparty, user));
   return pimarker;
 };
 // Добавляем маркеры на карту для контагентов с методом оплаты "Cash in person".
-const mapPinAdd = (data, group) => {
-  data.forEach((item) => {
-    if (!item.paymentMethods) { return; }
-    const res = item.paymentMethods.some((i) => i.provider === PROVIDER);
+const mapPinAdd = (counterparties, user, group) => {
+  counterparties.forEach((counterparty) => {
+    if (!counterparty.paymentMethods) { return; }
+    const res = counterparty.paymentMethods.some((i) => i.provider === PROVIDER);
     if (res) {
-      return createPin(item, group);
+      return createPin(counterparty, user, group);
     }
   });
 };
