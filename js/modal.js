@@ -110,4 +110,4 @@ modalCloseBtns(DOMElements.modalCloseBtn);
 attachPaymentChange(DOMElements.formModalSell);
 attachPaymentChange(DOMElements.formModalBuy);
 
-export { openModal, renderCounterpartiesAll };
+export { openModal, renderCounterpartiesAll, renderCounterpartiesModal };
