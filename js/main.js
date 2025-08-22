@@ -18,7 +18,6 @@ const mapContainer = document.querySelector('.map');
 const tabsMap = document.querySelector('.tabs--toggle-list-map');
 const allButtonsMap = tabsMap.querySelectorAll('.tabs__control');
 
-
 const resetChecked = () => {
   checkedUsers.checked = false;
 };
@@ -26,7 +25,7 @@ const renderFiltered = (data, groups, tabs, checked, user) => {
   const filtered = getFilteredData(data, tabs, checked);
   renderCounterparties(filtered, user);
   groups.clearLayers();
-  mapPinAdd(filtered, groups);
+  mapPinAdd(filtered, user, groups);
 };
 const tabsRenderCounterparties = (data, groups, user) => (e) => {
   const clickButton = e.target.classList.contains('tabs__control');
@@ -37,8 +36,8 @@ const tabsRenderCounterparties = (data, groups, user) => (e) => {
 
   renderFiltered(data, groups, tabsControls, checkedUsers, user);
 };
-const checkedRenderCounterparties = (data, groups) => () => {
-  renderFiltered(data, groups, tabsControls, checkedUsers);
+const checkedRenderCounterparties = (data, groups, user) => () => {
+  renderFiltered(data, groups, tabsControls, checkedUsers, user);
 };
 const mapIsView = (isMapView) => {
   mapContainer.parentElement.style.display = isMapView ? 'block' : 'none';
@@ -60,7 +59,7 @@ const tabsMapsRenderCounterparties = (buttons, activeBtn, maps) => (e) => {
 const initDefaultData = (data, tabs, checked, groups, user) => {
   const filtered = getFilteredData(data, tabs, checked);
   renderCounterparties(filtered, user);
-  mapPinAdd(filtered, groups);
+  mapPinAdd(filtered, user, groups);
 };
 // ВСЕ ИНИЦИАЛАЗИЦИИ
 const initToggleEventListener = (data, user) => {
@@ -69,7 +68,7 @@ const initToggleEventListener = (data, user) => {
   const groups = L.layerGroup().addTo(maps);
   initDefaultData(data, tabsControls, checkedUsers, groups, user);
   tabsControls.addEventListener('click', tabsRenderCounterparties(data, groups, user));
-  checkedUsers.addEventListener('change', checkedRenderCounterparties(data, groups));
+  checkedUsers.addEventListener('change', checkedRenderCounterparties(data, groups, user));
   tabsMap.addEventListener('click', tabsMapsRenderCounterparties(allButtonsMap, tabsMap, maps));
 };
 
@@ -95,7 +94,7 @@ const getData = async (url, onError) => {
     throw error;
   }
 };
-const allInitData = async () => {
+const allIgetData = async () => {
   try {
     const [user, contractor] = await Promise.allSettled([
       getData(DATAURL.user, () => failUserData()),
@@ -105,7 +104,7 @@ const allInitData = async () => {
       userProfiles(user.value);
     }
     if (contractor.status === 'fulfilled' && user.status === 'fulfilled') {
-      console.log(contractor.value)
+      console.log(contractor.value);
       initToggleEventListener(contractor.value, user.value);
     }
   }
@@ -113,6 +112,6 @@ const allInitData = async () => {
     console.error(error);
   }
 };
-allInitData();
+allIgetData();
 
 
