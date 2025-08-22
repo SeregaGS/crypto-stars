@@ -7,6 +7,7 @@ import {
 import { getFilteredTab } from './filter.js';
 
 const DOMElements = {
+  body: document.querySelector('body'),
   formModalSell: document.querySelector('.modal-buy'),
   formModalBuy: document.querySelector('.modal-sell'),
   modalCloseBtn: document.querySelectorAll('.modal__close-btn'),
@@ -76,10 +77,12 @@ const renderCounterpartiesAll = (item, user) => {
 // Открытие модального окна
 const openModal = (type) => {
   DOMElements[type].style.display = 'block';
+  DOMElements.body.classList.add('scroll-lock');
 };
 // Закрытие модального окна
 const closeModal = (modal) => {
   modal.style.display = 'none';
+  DOMElements.body.classList.remove('scroll-lock');
   const isModalSell = modal.querySelector(SELECTORS.form);
   isModalSell.reset();
   const isSell = isModalSell.classList.contains('modal-buy');
