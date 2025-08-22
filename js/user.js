@@ -5,8 +5,8 @@ const DOMElements = {
   userProfile: document.querySelector('.user-profile')
 };
 
-const userProfiles = (data) => {
-  const { userName = 'Гость', balances } = data;
+const userProfiles = (user) => {
+  const { userName = 'Гость', balances } = user;
   const fiatCurrency = balances.find((currency) => currency.currency === 'RUB');
   const cryptoCurrency = balances.find((currency) => currency.currency === 'KEKS');
   DOMElements.userProfileName.textContent = userName;
