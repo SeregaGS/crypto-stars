@@ -463,14 +463,15 @@
                     ><span class="custom-input__label">Оплата</span
                     ><span class="custom-input__unit">₽</span>
                     <button
-                      class="btn btn--textblue custom-input__btn"
+                      class="btn btn--textblue custom-input__btn fiat"
                       type="button"
                     >
                       обменять все
                     </button>
                     <input
-                      data-payment="pay"
+                      data-payment="fiat"
                       type="number"
+                      step="0.01"
                       value=""
                       placeholder="0"
                     />
@@ -497,6 +498,7 @@
                     <input
                       data-payment="crypto"
                       type="number"
+                      step="0.01"
                       placeholder="0"
                     />
                   </label>
@@ -659,12 +661,17 @@
                     <span class="custom-input__label">Оплата</span>
                     <span class="custom-input__unit">KEKS</span>
                     <button
-                      class="btn btn--textblue custom-input__btn"
+                      class="btn btn--textblue custom-input__btn crypto"
                       type="button"
                     >
                       обменять все
                     </button>
-                    <input type="number" value="" placeholder="0" />
+                    <input
+                      data-payment="crypto"
+                      type="number"
+                      value=""
+                      placeholder="0"
+                    />
                   </label>
                   <div class="custom-input__error">
                     Минимальная сумма — 9 999 999 ₽
@@ -685,12 +692,17 @@
                     ><span class="custom-input__label">Зачисление</span
                     ><span class="custom-input__unit">₽</span>
                     <button
-                      class="btn btn--textblue custom-input__btn"
+                      class="btn btn--textblue custom-input__btn fiat"
                       type="button"
                     >
                       обменять все
                     </button>
-                    <input type="number" value="" placeholder="0" />
+                    <input
+                      data-payment="fiat"
+                      type="number"
+                      value=""
+                      placeholder="0"
+                    />
                   </label>
                 </div>
               </div>
