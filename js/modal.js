@@ -115,31 +115,35 @@ const updateMinMaxAmounts = (fiatInput, cryptoInput, counterparty, user, mode) =
   updateMaxFiatAmount(fiatInput, counterparty, user, mode);
 };
 
-// Устанавливаем input в максимум при нажатии кнопки
-const setMaxOnClick = (button, input) => {
-  if (!button || !input) { return; }
-  button.addEventListener('click', () => {
-    input.value = input.max;
+// Делегирование input в максимум при нажатии кнопки
+const setMaxOnClicks = (modalElement, counterparty) => {
+  const dataPaymentFiat = modalElement.querySelector(SELECTORS.dataPaymentFiat);
+  const dataPaymentCrypto = modalElement.querySelector(SELECTORS.dataPaymentCrypto);
+
+  modalElement.addEventListener('click', (e) => {
+    if (e.target.matches(SELECTORS.exchangeFiatButton)) {
+      dataPaymentFiat.value = dataPaymentFiat.max;
+      dataPaymentCrypto.value = roundingAmount(dataPaymentFiat.value / counterparty.exchangeRate);
+    }
+    if (e.target.matches(SELECTORS.exchangeCryptoButton)) {
+      dataPaymentCrypto.value = dataPaymentCrypto.max;
+      dataPaymentFiat.value = roundingAmount(dataPaymentCrypto.value * counterparty.exchangeRate);
+    }
   });
 };
-// Синхронизация input фиата → крипта
-const changeInputCryptoValue = (fiatInput, cryptoInput, counterparty) => {
-  fiatInput.addEventListener('input', () => {
-    const newValue = roundingAmount(fiatInput.value / counterparty.exchangeRate);
-    cryptoInput.value = newValue;
+// Делегирование ввода фиата и крипты
+const changeInputValues = (modalElement, counterparty) => {
+  const dataPaymentFiat = modalElement.querySelector(SELECTORS.dataPaymentFiat);
+  const dataPaymentCrypto = modalElement.querySelector(SELECTORS.dataPaymentCrypto);
+
+  modalElement.addEventListener('input', (e) => {
+    if (e.target.matches(SELECTORS.dataPaymentFiat)) {
+      dataPaymentCrypto.value = roundingAmount(dataPaymentFiat.value / counterparty.exchangeRate);
+    }
+    if (e.target.matches(SELECTORS.dataPaymentCrypto)) {
+      dataPaymentFiat.value = roundingAmount(dataPaymentCrypto.value * counterparty.exchangeRate);
+    }
   });
-};
-// Синхронизация input крипта → фиата
-const changeInputFiatValue = (fiatInput, cryptoInput, counterparty) => {
-  cryptoInput.addEventListener('input', () => {
-    const newValue = roundingAmount(cryptoInput.value * counterparty.exchangeRate);
-    fiatInput.value = newValue;
-  });
-};
-// Привязываем двустороннюю синхронизацию полей
-const syncFiatAndCryptoInputs = (fiatInput, cryptoInput, counterparty) => {
-  changeInputCryptoValue(fiatInput, cryptoInput, counterparty);
-  changeInputFiatValue(fiatInput, cryptoInput, counterparty);
 };
 // Очистка input при закрытии модалки
 const cleanInputValue = (fiatInput, cryptoInput) => {
@@ -158,10 +162,12 @@ const renderCounterpartiesModal = (modalElement, counterparty, user, mode) => {
   counterpartiesIsVerified(modalElement, counterparty, SELECTORS.isVerify);
   renderModalPaymentMethods(modalElement, modalElement.provider);
   updateMinMaxAmounts(dataPaymentFiat, dataPaymentCrypto, counterparty, user, mode);
+  changeInputValues(modalElement, counterparty);
+  setMaxOnClicks(modalElement, counterparty);
   // Обменять всё * РУБЛИ * и * КРИПТО *
-  setMaxOnClick(modalElement.querySelector(SELECTORS.exchangeFiatButton), dataPaymentFiat);
-  setMaxOnClick(modalElement.querySelector(SELECTORS.exchangeCryptoButton), dataPaymentCrypto);
-  syncFiatAndCryptoInputs(dataPaymentFiat, dataPaymentCrypto, counterparty);
+  // setMaxOnClick(modalElement.querySelector(SELECTORS.exchangeFiatButton), dataPaymentFiat, dataPaymentCrypto, counterparty);
+  // setMaxOnClick(modalElement.querySelector(SELECTORS.exchangeCryptoButton), dataPaymentCrypto, dataPaymentFiat, counterparty);
+
 };
 
 // Рендерим всех контрагентов в зависимости от выбранной вкладки
