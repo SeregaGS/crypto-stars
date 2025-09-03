@@ -4,7 +4,7 @@ import {
   renderSellerPaymentBadges,
   counterpartiesBalanceCurrency
 } from './util.js';
-import { openModal, renderCounterpartiesAll } from './modal.js';
+import { openModal } from './modal.js';
 import { getFilteredTab } from './filter.js';
 
 const DOMElements = {
@@ -42,8 +42,7 @@ const createCounterpartiesItem = (counterparty, user) => {
   renderCounterpartyInfo(list, counterparty);
   renderModalPaymentMethodsSeller(list, counterparty);
   list.querySelector(SELECTORS.button).addEventListener('click', () => {
-    openModal(getFilteredTab(DOMElements.tabsControls));
-    renderCounterpartiesAll(counterparty, user);
+    openModal(getFilteredTab(DOMElements.tabsControls), counterparty, user);
   });
   return list;
 };
