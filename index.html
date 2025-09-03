@@ -420,7 +420,12 @@
         <div class="modal__content">
           <h2 class="modal__description">Покупка криптовалюты</h2>
           <!-- Не забудьте указать верный action-атрибут -->
-          <form class="modal-buy" method="post">
+          <form
+            class="modal-buy"
+            method="post"
+            enctype="multipart/form-data"
+            action="https://cryptostar.grading.htmlacademy.pro/"
+          >
             <!--
                         Обратите внимание, что всем полям для отправки на сервер нужно указать
                         атрибуты name (их список вы найдёте в техзадании), а часть полей
@@ -478,7 +483,7 @@
                   </label>
                   <!-- Пример стилизации ошибки валидации -->
                   <div class="custom-input__error">
-                    Минимальная сумма — 9 999 999 ₽
+                    <!-- Минимальная сумма — 9 999 999 ₽ -->
                   </div>
                 </div>
               </div>
@@ -617,7 +622,12 @@
         <div class="modal__content">
           <h2 class="modal__description">Продажа криптовалюты</h2>
           <!-- Не забудьте указать верный action-атрибут -->
-          <form class="modal-sell" method="post">
+          <form
+            class="modal-sell"
+            method="post"
+            enctype="multipart/form-data"
+            action="https://cryptostar.grading.htmlacademy.pro/"
+          >
             <!--
                         Обратите внимание, что всем полям для отправки на сервер нужно указать
                         атрибуты name (их список вы найдёте в техзадании), а часть полей
@@ -674,7 +684,7 @@
                     />
                   </label>
                   <div class="custom-input__error">
-                    Минимальная сумма — 9 999 999 ₽
+                    <!-- Минимальная сумма — 9 999 999 ₽ -->
                   </div>
                 </div>
               </div>
