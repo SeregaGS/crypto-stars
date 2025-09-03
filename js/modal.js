@@ -4,7 +4,6 @@ import {
   counterpartiesIsVerified,
   renderBandgePayMethods
 } from './util.js';
-import { getFilteredTab } from './filter.js';
 
 const DOMElements = {
   body: document.querySelector('body'),
@@ -78,18 +77,21 @@ const getUserBalance = (user, mode) => {
 };
 // Устанавливаем максимум для input
 const assignContainerMax = (container, first, second) => {
-  container.max = Math.min(first, second);
+  // container.max = Math.min(first, second);
+  container.setAttribute('data-pristine-max', Math.min(first, second));
 };
 // Минимальные суммы для фиата и крипты в input min
 const updateMinAmounts = (fiatMin, cryptoMin, counterparty, user, mode) => {
   const fiatMinAmount = mode === 'sell'
     ? counterparty.minAmount * counterparty.exchangeRate
     : counterparty.minAmount;
-  fiatMin.min = roundingAmount(fiatMinAmount);
+  fiatMin.setAttribute('data-pristine-min', roundingAmount(fiatMinAmount));
+  // fiatMin.min = roundingAmount(fiatMinAmount);
   const cryptoMinAmount = mode === 'sell'
     ? counterparty.minAmount
     : counterparty.minAmount / counterparty.exchangeRate;
-  cryptoMin.min = Math.min(roundingAmount(cryptoMinAmount), getUserBalance(user, 'buy'));
+  cryptoMin.setAttribute('data-pristine-min', roundingAmount(cryptoMinAmount), getUserBalance(user, 'buy'));
+  // cryptoMin.min = Math.min(roundingAmount(cryptoMinAmount), getUserBalance(user, 'buy'));
 };
 // Максимальная сумма сделки для фиата в input max
 const updateMaxFiatAmount = (container, counterparty, user, mode) => {
@@ -156,6 +158,12 @@ const cleanInputValue = (modalElement) => {
     input.value = '';
   });
 };
+// Форма
+const config = {
+  classTo: 'custom-input',
+  errorTextParent: 'custom-input__error',
+  errorTextTag: 'span'
+};
 // Основной рендер модальнего окна
 const renderCounterpartiesModal = (modalElement, counterparty, user, mode) => {
   const isBuyModal = mode === 'sell';
@@ -171,19 +179,23 @@ const renderCounterpartiesModal = (modalElement, counterparty, user, mode) => {
   syncInputValues(modalElement, counterparty);
   handleMaxButtonClicks(modalElement, counterparty);
 };
-
-// Рендерим всех контрагентов в зависимости от выбранной вкладки
-const renderCounterpartiesAll = (counterparty, user) => {
-  if (getFilteredTab(DOMElements.tabsControls) === 'seller') {
-    renderCounterpartiesModal(DOMElements.formModalSell, counterparty, user, 'sell');
-  } else {
-    renderCounterpartiesModal(DOMElements.formModalBuy, counterparty, user, 'buy');
-  }
-};
-const openModal = (mode) => {
+const openModal = (mode, counterparty, user) => {
+  const seller = mode === 'seller' ? 'sell' : 'buy';
   DOMElements[mode].style.display = 'block';
   DOMElements.body.classList.add('scroll-lock');
 
+  renderCounterpartiesModal(DOMElements[mode], counterparty, user, seller);
+
+  const form = document.querySelector('form');
+  const pristine = new Pristine(form, config);
+  const inpitMin = form.querySelector(SELECTORS.dataPaymentFiat);
+  console.log(mode);
+  console.log(inpitMin.dataset.pristineMax);
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    pristine.validate();
+  });
   const escEvent = (event) => {
     if (event.key === 'Escape') {
       closeModal(DOMElements[mode]);
@@ -232,4 +244,4 @@ attachPaymentChange(DOMElements.formModalSell);
 attachPaymentChange(DOMElements.formModalBuy);
 
 
-export { openModal, renderCounterpartiesAll, renderCounterpartiesModal };
+export { openModal, renderCounterpartiesModal };
