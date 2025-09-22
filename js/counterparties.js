@@ -1,58 +1,38 @@
 import {
-  counterpartiesIsVerified,
   clearBandgeContainer,
   renderSellerPaymentBadges,
-  counterpartiesBalanceCurrency
+  renderCounterpartyInfo
 } from './util.js';
 import { openModal } from './modal.js';
 import { getFilteredTab } from './filter.js';
+import {DOMElements, COUNTERPARTIES} from './dom-helpers.js';
 
-const DOMElements = {
-  usersListContainer: document.querySelector('.users-list__table-body'),
-  userTableRowTemplate: document.querySelector('#user-table-row__template').content,
-  tabsControls: document.querySelector('.tabs__controls')
+// Функция для отображения методов оплаты продавца в модальном окне
+const renderModalPaymentMethodsSeller = (container, counterparty) => {
+  clearBandgeContainer(container, COUNTERPARTIES.badgeList);
+  renderSellerPaymentBadges(container, counterparty, COUNTERPARTIES.badgeList, COUNTERPARTIES.badgeItem);
 };
-const SELECTORS = {
-  containerUser: '.users-list__table-row',
-  name: '.users-list__table-name span',
-  currency: '.users-list__table-currency',
-  exchangeRate: '.users-list__table-exchangerate',
-  limit: '.users-list__table-cashlimit',
-  isVerify: '.users-list__table-name svg',
-  bandgeList: '.users-list__badges-list',
-  bandgeItem: ['users-list__badges-item', 'badge'],
-  button: '.btn--greenborder'
-};
-
-const renderCounterpartyInfo = (container, counterparty) => {
-  const { userName, balance, exchangeRate, id } = counterparty;
-  container.querySelector(SELECTORS.containerUser).id = id;
-  container.querySelector(SELECTORS.name).textContent = userName;
-  container.querySelector(SELECTORS.currency).textContent = balance.currency;
-  container.querySelector(SELECTORS.exchangeRate).textContent = `${exchangeRate} ₽`;
-  container.querySelector(SELECTORS.limit).textContent = counterpartiesBalanceCurrency(counterparty);
-  counterpartiesIsVerified(container, counterparty, SELECTORS.isVerify);
-};
-const renderModalPaymentMethodsSeller = (modal, counterparty) => {
-  clearBandgeContainer(modal, SELECTORS.bandgeList);
-  renderSellerPaymentBadges(modal, counterparty, SELECTORS.bandgeList, SELECTORS.bandgeItem);
-};
+// Функция для создания элемента контрагента на основе данных
 const createCounterpartiesItem = (counterparty, user) => {
-  const list = DOMElements.userTableRowTemplate.cloneNode(true);
-  renderCounterpartyInfo(list, counterparty);
+  const list = DOMElements.counterpartyTemplate.cloneNode(true);
+  const container = list.querySelector(COUNTERPARTIES.containers);
+
+  renderCounterpartyInfo(container, COUNTERPARTIES, counterparty);
   renderModalPaymentMethodsSeller(list, counterparty);
-  list.querySelector(SELECTORS.button).addEventListener('click', () => {
+  list.querySelector(COUNTERPARTIES.buttonOpenModal).onclick = () => {
     openModal(getFilteredTab(DOMElements.tabsControls), counterparty, user);
-  });
+  };
   return list;
 };
+// Функция для отображения списка контрагентов на странице
 const renderCounterparties = (data, user) => {
-  DOMElements.usersListContainer.replaceChildren();
+  DOMElements.counterpartyListContainer.replaceChildren();
   const fragment = document.createDocumentFragment();
   data.forEach((counterparty) => {
     const createCounterparties = createCounterpartiesItem(counterparty, user);
     fragment.append(createCounterparties);
   });
-  DOMElements.usersListContainer.append(fragment);
+  DOMElements.counterpartyListContainer.append(fragment);
 };
+
 export { renderCounterparties };

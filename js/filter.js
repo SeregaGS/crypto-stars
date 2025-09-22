@@ -4,7 +4,7 @@ const getFilteredTab = (buttons) => {
   return currentActiveButton.textContent.trim() === 'Купить' ? 'seller' : 'buyer';
 };
 
-// Фильтр по статусу и по checked верефицированных контрагентов;
+// Фильтр по статусу и по checked верифицированных контрагентов;
 const getFilteredVerifiedStatus = (data, status, onlyVerified) => {
   let filtered = data.filter((item) => item.status === status);
   if (onlyVerified) {

@@ -1,54 +1,23 @@
 import {
   clearBandgeContainer,
   renderBandgePayMethods,
-  counterpartiesIsVerified,
-  counterpartiesBalanceCurrency,
+  renderCounterpartyInfo
 } from './util.js';
 import { getFilteredTab } from './filter.js';
-import { openModal, renderCounterpartiesModal } from './modal.js';
-
-const TILE_LAYER = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>';
-const PROVIDER = 'Cash in person';
-
-const DOMElements = {
-  tabsControls: document.querySelector('.tabs__controls'),
-  formModalSell: document.querySelector('.modal-buy'),
-  templateBaloon: document.querySelector('#map-baloon__template')
-};
-const MAP_COORDINATES_DEFAULT = {
-  lat: 59.92749,
-  lng: 30.31127,
-  view: 9
-};
-
-const SELECTORS = {
-  counterpartyCard: '.user-card',
-  counterpartyCardSvg: '.user-card__user-name svg',
-  counterpartyName: '.user-card__user-name span',
-  currency: '[data-cash="currency"]',
-  exchangeRate: '[data-cash="exchange-rate"]',
-  limit: '[data-cash="limit"]',
-  badgesList: '.user-card__badges-list',
-  badgesItem: ['users-list__badges-item', 'badge'],
-  btnOpenModal: '.btn--green'
-};
+import { openModal } from './modal.js';
+import { DOMElements, BALLOON, COORDINATES_DEFAULT, TILE_LAYER, ATTRIBUTION, PROVIDER } from './dom-helpers.js';
 
 // Создаём DOM-элемент балуна (всплывающего окна) для маркера на карте
 const mapPinBalloon = (counterparty, user) => {
-  const { userName, balance, exchangeRate } = counterparty;
-  const balloonTemplate = DOMElements.templateBaloon.content.querySelector(SELECTORS.counterpartyCard);
+  const balloonTemplate = DOMElements.templateBalloon.content.querySelector(BALLOON.containers);
   const balloonElement = balloonTemplate.cloneNode(true);
-  balloonElement.querySelector(SELECTORS.counterpartyName).textContent = userName;
-  balloonElement.querySelector(SELECTORS.currency).textContent = balance.currency;
-  balloonElement.querySelector(SELECTORS.exchangeRate).textContent = exchangeRate.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' });
-  balloonElement.querySelector(SELECTORS.limit).textContent = counterpartiesBalanceCurrency(counterparty);
-  clearBandgeContainer(balloonElement, SELECTORS.badgesList);
-  renderBandgePayMethods(balloonElement, counterparty, SELECTORS.badgesList, SELECTORS.badgesItem);
-  counterpartiesIsVerified(balloonElement, counterparty, SELECTORS.counterpartyCardSvg);
-  balloonElement.querySelector(SELECTORS.btnOpenModal).addEventListener('click', () => {
-    openModal(getFilteredTab(DOMElements.tabsControls));
-    renderCounterpartiesModal(DOMElements.formModalSell, counterparty, user, 'sell');
+
+  renderCounterpartyInfo(balloonElement, BALLOON, counterparty);
+
+  clearBandgeContainer(balloonElement, BALLOON.badgesList);
+  renderBandgePayMethods(balloonElement, counterparty, BALLOON.badgesList, BALLOON.badgeItem);
+  balloonElement.querySelector(BALLOON.buttonOpenModal).addEventListener('click', () => {
+    openModal(getFilteredTab(DOMElements.tabsControls), counterparty, user);
   });
   return balloonElement;
 };
@@ -74,7 +43,7 @@ const createPin = (counterparty, user, group) => {
     .bindPopup(mapPinBalloon(counterparty, user));
   return pimarker;
 };
-// Добавляем маркеры на карту для контагентов с методом оплаты "Cash in person".
+// Добавляем маркеры на карту для контрагентов с методом оплаты "Cash in person".
 const mapPinAdd = (counterparties, user, group) => {
   counterparties.forEach((counterparty) => {
     if (!counterparty.paymentMethods) { return; }
@@ -88,9 +57,9 @@ const mapPinAdd = (counterparties, user, group) => {
 const mapCreate = (container) => {
   const map = L.map(container)
     .setView({
-      lat: MAP_COORDINATES_DEFAULT.lat,
-      lng: MAP_COORDINATES_DEFAULT.lng,
-    }, MAP_COORDINATES_DEFAULT.view);
+      lat: COORDINATES_DEFAULT.lat,
+      lng: COORDINATES_DEFAULT.lng,
+    }, COORDINATES_DEFAULT.view);
   L.tileLayer(
     TILE_LAYER,
     {

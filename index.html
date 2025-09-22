@@ -243,7 +243,7 @@
                 Для удобства обращения из JS, вы можете добавить контейнерам id
                 или уникальные классы
             -->
-        <div class="container" style="display: none">
+        <div class="container container--server_error" style="display: none">
           <div class="message">
             <span class="message__icon">
               <svg width="60" height="60" aria-hidden="true">
@@ -259,7 +259,7 @@
           </div>
         </div>
 
-        <div class="container">
+        <div class="container container--counterparties">
           <div class="users-nav">
             <div class="users-nav__tabs">
               <div
@@ -439,12 +439,12 @@
 
             <div class="transaction-info">
               <p class="transaction-info__item transaction-info__item--name">
-                <span class="transaction-info__label">Пользователь</span
-                ><span class="transaction-info__data">
+                <span class="transaction-info__label">Пользователь</span>
+                <span class="transaction-info__data">
                   <svg width="20" height="20" aria-hidden="true">
-                    <use xlink:href="#icon-star"></use></svg
-                  >John Smith</span
-                >
+                    <use xlink:href="#icon-star"></use></svg>
+                  <span>John Smith</span>
+                </span>
               </p>
               <p
                 class="transaction-info__item transaction-info__item--exchangerate"
@@ -476,15 +476,15 @@
                     <input
                       data-payment="fiat"
                       type="number"
-                      step="0.01"
                       value=""
                       placeholder="0"
                     />
+                    <input type="hidden" name="sendingAmount" value="" />
                   </label>
                   <!-- Пример стилизации ошибки валидации -->
-                  <div class="custom-input__error">
-                    <!-- Минимальная сумма — 9 999 999 ₽ -->
-                  </div>
+                  <!-- <div class="custom-input__error">
+                    Минимальная сумма — 9 999 999 ₽
+                  </div> -->
                 </div>
               </div>
               <svg
@@ -503,23 +503,23 @@
                     <input
                       data-payment="crypto"
                       type="number"
-                      step="0.01"
                       placeholder="0"
                     />
+                    <input type="hidden" name="receivingAmount" value="" />
                   </label>
                 </div>
               </div>
             </div>
             <div class="modal__container">
               <div class="modal__select-wrapper">
-                <div class="select">
+                <div class="select custom-input">
                   <span>Плaтёжная система</span>
                   <!--
                                     При отрисовке в списке платёжных систем нужно отразить только те,
                                     которые есть у пользователя. Способ - удалить из разметки или добавить disable-атрибут
                                     остаётся на ваше усмотрение. Первый пункт, с предложением выбора, должен быть всегда
                                 -->
-                  <select>
+                  <select name="paymentMethod">
                     <option selected disabled>
                       Выберите платёжную систему
                     </option>
@@ -567,8 +567,9 @@
                     ><span class="custom-input__label">Платёжный пароль</span>
                     <input
                       data-type="payment-password"
+                      name="paymentPassword"
                       type="password"
-                      value="123456"
+                      value=""
                       placeholder="Введите пароль"
                     />
                   </label>
@@ -579,19 +580,19 @@
               </button>
               <!-- Сообщение, которое нужно показать в случае неудачной отправки данных -->
               <p
-                class="modal__validation-message modal__validation-message--error"
+                class="modal__validation-message modal__validation-message--error visually-hidden"
               >
                 <svg width="20" height="20" aria-hidden="true">
                   <use xlink:href="#icon-error"></use></svg
-                >Ошибка заполнения формы
+                ><span>Ошибка заполнения формы</span>
               </p>
               <!-- Сообщение, которое нужно показать в случае успешной отправки данных -->
               <p
-                class="modal__validation-message modal__validation-message--success"
+                class="modal__validation-message modal__validation-message--success visually-hidden"
               >
                 <svg width="20" height="20" aria-hidden="true">
                   <use xlink:href="#icon-success"></use></svg
-                >Данные успешно отправлены
+                ><span>Данные успешно отправлены</span>
               </p>
             </div>
           </form>
@@ -646,7 +647,7 @@
                   <svg width="20" height="20" aria-hidden="true">
                     <use xlink:href="#icon-star"></use>
                   </svg>
-                  John Smith
+                  <span>John Smith</span>
                 </span>
               </p>
               <p
@@ -682,10 +683,11 @@
                       value=""
                       placeholder="0"
                     />
+                    <input type="hidden" name="sendingAmount" value="" />
                   </label>
-                  <div class="custom-input__error">
-                    <!-- Минимальная сумма — 9 999 999 ₽ -->
-                  </div>
+                  <!-- <div class="custom-input__error">
+                    Минимальная сумма — 9 999 999 ₽
+                  </div> -->
                 </div>
               </div>
               <svg
@@ -713,6 +715,7 @@
                       value=""
                       placeholder="0"
                     />
+                    <input type="hidden" name="receivingAmount" value="" />
                   </label>
                 </div>
               </div>
@@ -734,14 +737,14 @@
                 </div>
               </div>
               <div class="modal__select-wrapper">
-                <div class="select">
+                <div class="select custom-input">
                   <span>Плaтёжная система</span>
                   <!--
                                     При отрисовке в списке платёжных систем нужно отразить только те,
                                     которые есть у пользователя. Способ - удалить из разметки или добавить disable-атрибут
                                     остаётся на ваше усмотрение. Первый пункт, с предложением выбора, должен быть всегда
                                 -->
-                  <select>
+                  <select name="paymentMethod">
                     <option selected disabled>
                       Выберите платёжную систему
                     </option>
@@ -772,7 +775,11 @@
                 <div class="custom-input">
                   <label
                     ><span class="custom-input__label">Платёжный пароль</span>
-                    <input type="password" placeholder="Введите пароль" />
+                    <input
+                      type="password"
+                      name="paymentPassword"
+                      placeholder="Введите пароль"
+                    />
                   </label>
                 </div>
               </div>
@@ -781,19 +788,19 @@
               </button>
               <!-- Сообщение, которое нужно показать в случае неудачной отправки данных -->
               <p
-                class="modal__validation-message modal__validation-message--error"
+                class="modal__validation-message modal__validation-message--error visually-hidden"
               >
                 <svg width="20" height="20" aria-hidden="true">
                   <use xlink:href="#icon-error"></use></svg
-                >Ошибка заполнения формы
+                ><span>Ошибка заполнения формы</span>
               </p>
               <!-- Сообщение, которое нужно показать в случае успешной отправки данных -->
               <p
-                class="modal__validation-message modal__validation-message--success"
+                class="modal__validation-message modal__validation-message--success visually-hidden"
               >
                 <svg width="20" height="20" aria-hidden="true">
                   <use xlink:href="#icon-success"></use></svg
-                >Данные успешно отправлены
+                ><span>Данные успешно отправлены</span>
               </p>
             </div>
           </form>
