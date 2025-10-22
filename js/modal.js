@@ -235,35 +235,49 @@ const resetFormModal = (modalElement) => {
   defaultCryptoWalletPlaceholder(form, modalElement.mode);
 };
 // Закрывает модальное окно
-function closeModal (modalElement) {
+function closeModal(modalElement) {
   removeEventListenerModal(modalElement);
   resetFormModal(modalElement);
   hideModal(modalElement);
+  if (modalElement.escHandler) {
+    document.removeEventListener('keydown', modalElement.escHandler);
+    modalElement.escHandler = null;
+  }
+  if (modalElement.handlerButton) {
+    modalElement.escButton.removeEventListener('click', modalElement.handlerButton);
+    modalElement.escButton = null;
+    modalElement.handlerButton = null;
+  }
+  if (modalElement.handlerOverlay) {
+    modalElement.removeEventListener('click', modalElement.handlerOverlay);
+    modalElement.handlerOverlay = null;
+  }
 }
 
-function handleEscClose (modalElement) {
+function handleEscClose(modalElement) {
   const escEvent = (e) => {
     if (e.key === 'Escape') {
       closeModal(modalElement);
-      document.removeEventListener('keydown', escEvent);
     }
   };
+  modalElement.escHandler = escEvent;
   document.addEventListener('keydown', escEvent);
 }
-function handleButtonClose (modalElement, button) {
+function handleButtonClose(modalElement, button) {
   const clickClose = () => {
     closeModal(modalElement);
-    button.removeEventListener('click', clickClose);
   };
+  modalElement.handlerButton = clickClose;
+  modalElement.escButton = button;
   button.addEventListener('click', clickClose);
 }
-function handleOverlayClose (modalElement) {
+function handleOverlayClose(modalElement) {
   const overlayClose = (e) => {
-    if(e.target.matches('.modal__overlay')) {
+    if (e.target.matches('.modal__overlay')) {
       closeModal(modalElement);
-      modalElement.removeEventListener('click', overlayClose);
     }
   };
+  modalElement.handlerOverlay = overlayClose;
   modalElement.addEventListener('click', overlayClose);
 }
 // Открывает модальное окно
