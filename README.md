@@ -249,3 +249,29 @@ Cryptostart - это одностраничное приложение, имит
 ![Главный экран](./img/screens/counterparties.png)
 
 </details>
+
+<details> <summary><b>Полупатели</b></summary>
+
+![Полупатели](./img/screens/buyers.png)
+
+</details>
+
+<details> <summary><b>Верифицированные продавцы или покупатели</b></summary>
+
+![Верифицированные продавцы или покупатели](./img/screens/verification.png)
+
+</details>
+
+<details> <summary><b>Карта</b></summary>
+
+![Карта](./img/screens/map.png)
+
+![Балун](./img/screens/balloon.png)
+
+</details>
+
+<details> <summary><b>Модальное окно</b></summary>
+
+![Модальное окно](./img/screens/modal.png.png)
+
+</details>
