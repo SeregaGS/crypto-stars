@@ -244,4 +244,6 @@ Cryptostart - это одностраничное приложение, имит
 
 ## Скриншоты проекта
 
+<details> <summary><b>Главный экран</b></summary>
 ![Главный экран](./img/screens/counterparties.png)
+</details>
