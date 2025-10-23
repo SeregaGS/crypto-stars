@@ -272,6 +272,6 @@ Cryptostart - это одностраничное приложение, имит
 
 <details> <summary><b>Модальное окно</b></summary>
 
-![Модальное окно](./img/screens/modal.png.png)
+![Модальное окно](./img/screens/modal.png)
 
 </details>
