@@ -112,8 +112,7 @@ const validateModal = (e) => {
     timeoutManager(() => unabledSubmit(button), 2000)();
   }, () => {
     unabledSubmit(button);
-    timeoutManager(() => messageError(form, 'Ошибка отправки данных на сервер, повторите позже'), 2000)();
-    timeoutManager(() => closeModal(modalElement), 2000)();
+    messageError(form, 'Ошибка отправки данных на сервер, повторите позже', false);
   });
 };
 
