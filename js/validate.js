@@ -9,7 +9,7 @@ const messageError = (container, error, isValid = true) => {
 
   message.classList.remove('visually-hidden');
   text.textContent = error;
-  if(!isValid) {
+  if (!isValid) {
     timeoutManager(() => message.classList.add('visually-hidden'), 2500)();
   }
 };
@@ -17,8 +17,8 @@ const messageSuccess = (container, isValid = true) => {
   const message = container.querySelector(MODAL.messageSuccess);
   message.classList.remove('visually-hidden');
 
-  if(isValid) {
-    timeoutManager(() => message.classList.add('visually-hidden'), 2000);
+  if (isValid) {
+    timeoutManager(() => message.classList.add('visually-hidden'), 2000)();
   }
 };
 const disabledSubmit = (button) => {
@@ -41,7 +41,7 @@ const validateAmount = (value, el) => {
     validateAmount.error = 'Введите число, максимум двумя знаками после точки или запятой';
     return false;
   }
-  if(min > max) {
+  if (min > max) {
     validateAmount.error = 'Сделка не может состояться';
     return false;
   }
